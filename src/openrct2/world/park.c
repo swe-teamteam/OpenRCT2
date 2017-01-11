@@ -654,25 +654,6 @@ void park_update_histories()
 	gParkValueHistory[0] = gParkValue;
 }
 
-void park_set_entrance_fee(money32 value)
-{
-	game_do_command(0, GAME_COMMAND_FLAG_APPLY, 0, 0, GAME_COMMAND_SET_PARK_ENTRANCE_FEE, value, 0);
-}
-
-/**
- *
- *  rct2: 0x00669E30
- */
-void game_command_set_park_entrance_fee(int *eax, int *ebx, int *ecx, int *edx, int *esi, int *edi, int *ebp)
-{
-	gCommandExpenditureType = RCT_EXPENDITURE_TYPE_PARK_ENTRANCE_TICKETS;
-	if (*ebx & GAME_COMMAND_FLAG_APPLY) {
-		gParkEntranceFee = (*edi & 0xFFFF);
-		window_invalidate_by_class(WC_PARK_INFORMATION);
-	}
-	*ebx = 0;
-}
-
 void park_set_open(int open)
 {
 	game_do_command(0, GAME_COMMAND_FLAG_APPLY, 0, open << 8, GAME_COMMAND_SET_PARK_OPEN, 0, 0);
