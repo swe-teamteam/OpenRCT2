@@ -69,6 +69,7 @@
     <ClCompile Include="audio\MemoryAudioSource.cpp" />
     <ClCompile Include="audio\NullAudioSource.cpp" />
     <ClCompile Include="FileClassifier.cpp" />
+    <ClCompile Include="paint\TrackPaintContext.h" />
     <ClCompile Include="rct2\addresses.c" />
     <ClCompile Include="audio\audio.c" />
     <ClCompile Include="cheats.c" />
@@ -408,6 +409,7 @@
     <ClInclude Include="audio\AudioMixer.h" />
     <ClInclude Include="audio\AudioSource.h" />
     <ClInclude Include="FileClassifier.h" />
+    <ClInclude Include="paint\Painter.h" />
     <ClInclude Include="rct2\addresses.h" />
     <ClInclude Include="audio\audio.h" />
     <ClInclude Include="cheats.h" />
