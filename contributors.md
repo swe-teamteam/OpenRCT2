@@ -75,8 +75,8 @@ Includes all git commit authors. Aliases are GitHub user names.
 * Jake Breen (Haekb)
 * Chris Rorabaugh (crorabaugh2015)
 * Julien Pinelli (J-Pinelli)
-* Bader Alhamoud
-* Stuart Hernandez
+* Bader Alhamoud (baderalhamoud1)
+* Stuart Hernandez (HernandezS)
 * Ashlee Hudson (broccoli3251)
 
 ## Toolchain
