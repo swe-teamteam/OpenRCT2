@@ -14,7 +14,7 @@
  *****************************************************************************/
 #pragma endregion
 
-#include "../config.h"
+#include "../config/Config.h"
 #include "../game.h"
 #include "../interface/viewport.h"
 #include "../localisation/date.h"
@@ -24,6 +24,7 @@
 #include "../network/network.h"
 #include "../scenario/scenario.h"
 #include "../util/util.h"
+#include "../world/entrance.h"
 #include "../world/footpath.h"
 #include "../world/scenery.h"
 #include "../world/sprite.h"

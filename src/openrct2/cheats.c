@@ -15,14 +15,14 @@
 #pragma endregion
 
 #include "cheats.h"
-#include "config.h"
+#include "config/Config.h"
 #include "game.h"
 #include "interface/window.h"
 #include "localisation/date.h"
 #include "management/finance.h"
 #include "network/network.h"
 #include "util/util.h"
-#include "world/climate.h"
+#include "world/Climate.h"
 #include "world/footpath.h"
 #include "world/scenery.h"
 #include "world/sprite.h"
@@ -219,7 +219,7 @@ static void cheat_10_minute_inspections()
 static void cheat_no_money(bool enabled)
 {
 	if (enabled) {
-		gParkFlags |= PARK_FLAGS_NO_MONEY;	
+		gParkFlags |= PARK_FLAGS_NO_MONEY;
 	}
 	else {
 		gParkFlags &= ~PARK_FLAGS_NO_MONEY;

@@ -16,7 +16,7 @@
 
 #include "../audio/audio.h"
 #include "../audio/AudioMixer.h"
-#include "../config.h"
+#include "../config/Config.h"
 #include "../editor.h"
 #include "../game.h"
 #include "../interface/viewport.h"
@@ -535,6 +535,13 @@ static const sint32 Unk9A39C4[] = {
 	1946281152,
 };
 
+static const rct_xy16 AvoidCollisionMoveOffset[] = {
+	{ -1,  0 },
+	{  0,  1 },
+	{  1,  0 },
+	{  0, -1 },
+};
+
 static bool vehicle_move_info_valid(sint32 cd, sint32 typeAndDirection, sint32 offset)
 {
 	if (cd >= countof(gTrackVehicleInfo)) {
@@ -685,7 +692,7 @@ static void vehicle_update_sound_params(rct_vehicle* vehicle)
 								gVehicleSoundParamsListEnd++;
 							}
 							rct_vehicle_sound_params* j = gVehicleSoundParamsListEnd - 1;
-							while (j >= i) {
+							while (j > i) {
 								j--;
 								*(j + 1) = *j;
 							}
@@ -1251,7 +1258,7 @@ static void vehicle_update_measurements(rct_vehicle *vehicle)
 
 		sint32 distance = abs(((vehicle->velocity + vehicle->acceleration) >> 10) * 42);
 		if (vehicle->var_CE == 0){
-			ride->length[test_segment] += distance;
+			ride->length[test_segment] = add_clamp_sint32(ride->length[test_segment], distance);
 		}
 
 		if (ride_type_has_flag(ride->type, RIDE_TYPE_FLAG_HAS_G_FORCES)){
@@ -1538,7 +1545,7 @@ static void vehicle_update_measurements(rct_vehicle *vehicle)
 	sint32 distance = ((vehicle->velocity + vehicle->acceleration) >> 10) * 42;
 	if (distance < 0)return;
 
-	ride->sheltered_length += distance;
+	ride->sheltered_length = add_clamp_sint32(ride->sheltered_length, distance);
 }
 
 static uint16 sub_6D7AC0(sint32 currentSoundId, sint32 currentVolume, sint32 targetSoundId, sint32 targetVolume)
@@ -6804,7 +6811,7 @@ static void sub_6D63D4(rct_vehicle *vehicle)
  */
 static void vehicle_play_scenery_door_open_sound(rct_vehicle *vehicle, rct_map_element *mapElement)
 {
-	rct_scenery_entry *wallEntry = get_wall_entry(mapElement->properties.fence.type);
+	rct_scenery_entry *wallEntry = get_wall_entry(mapElement->properties.wall.type);
 	sint32 doorSoundType = (wallEntry->wall.flags2 >> 1) & 3;
 	if (doorSoundType != 0) {
 		sint32 soundId = DoorOpenSoundIds[doorSoundType - 1];
@@ -6820,7 +6827,7 @@ static void vehicle_play_scenery_door_open_sound(rct_vehicle *vehicle, rct_map_e
  */
 static void vehicle_play_scenery_door_close_sound(rct_vehicle *vehicle, rct_map_element *mapElement)
 {
-	rct_scenery_entry *wallEntry = get_wall_entry(mapElement->properties.fence.type);
+	rct_scenery_entry *wallEntry = get_wall_entry(mapElement->properties.wall.type);
 	sint32 doorSoundType = (wallEntry->wall.flags2 >> 1) & 3;
 	if (doorSoundType != 0) {
 		sint32 soundId = DoorCloseSoundIds[doorSoundType - 1];
@@ -6847,19 +6854,19 @@ static void vehicle_update_scenery_door(rct_vehicle *vehicle)
 	sint32 z = (vehicle->track_z - trackBlock->z + trackCoordinates->z_end) >> 3;
 	sint32 direction = (vehicle->track_direction + trackCoordinates->rotation_end) & 3;
 
-	rct_map_element *mapElement = map_get_fence_element_at(x, y, z, direction);
+	rct_map_element *mapElement = map_get_wall_element_at(x, y, z, direction);
 	if (mapElement == NULL) {
 		return;
 	}
 
 	if (vehicle->next_vehicle_on_train != SPRITE_INDEX_NULL) {
-		mapElement->properties.fence.item[2] &= 7;
-		mapElement->properties.fence.item[2] |= 8;
+		mapElement->properties.wall.animation &= ~(WALL_ANIMATION_FLAG_DIRECTION_BACKWARD);
+        wall_element_set_animation_frame(mapElement, 1);
 		map_animation_create(MAP_ANIMATION_TYPE_WALL_DOOR, x, y, z);
 		vehicle_play_scenery_door_open_sound(vehicle, mapElement);
 	} else {
-		mapElement->properties.fence.item[2] &= 7;
-		mapElement->properties.fence.item[2] |= 0x30;
+		mapElement->properties.wall.animation &= ~(WALL_ANIMATION_FLAG_DIRECTION_BACKWARD);
+        wall_element_set_animation_frame(mapElement, 6);
 		vehicle_play_scenery_door_close_sound(vehicle, mapElement);
 	}
 }
@@ -6930,19 +6937,19 @@ static void sub_6DEDE8(rct_vehicle *vehicle)
 	sint32 direction = (vehicle->track_direction + trackCoordinates->rotation_begin) & 3;
 	direction ^= 2;
 
-	rct_map_element *mapElement = map_get_fence_element_at(x, y, z, direction);
+	rct_map_element *mapElement = map_get_wall_element_at(x, y, z, direction);
 	if (mapElement == NULL) {
 		return;
 	}
 
 	if (vehicle->next_vehicle_on_train != SPRITE_INDEX_NULL) {
-		mapElement->properties.fence.item[2] &= 7;
-		mapElement->properties.fence.item[2] |= 0x88;
+		mapElement->properties.wall.animation |= WALL_ANIMATION_FLAG_DIRECTION_BACKWARD;
+		wall_element_set_animation_frame(mapElement, 1);
 		map_animation_create(MAP_ANIMATION_TYPE_WALL_DOOR, x, y, z);
 		vehicle_play_scenery_door_open_sound(vehicle, mapElement);
 	} else {
-		mapElement->properties.fence.item[2] &= 7;
-		mapElement->properties.fence.item[2] |= 0xB0;
+		mapElement->properties.wall.animation &= ~(WALL_ANIMATION_FLAG_DIRECTION_BACKWARD);
+		wall_element_set_animation_frame(mapElement, 6);
 		vehicle_play_scenery_door_close_sound(vehicle, mapElement);
 	}
 }
@@ -7017,7 +7024,7 @@ static void sub_6DB807(rct_vehicle *vehicle)
 	sprite_move(x, y, z, (rct_sprite*)vehicle);
 }
 
-extern const rct_xy16 duck_move_offset[4];
+extern const rct_xy16 DuckMoveOffset[4];
 
 /**
  * Collision Detection
@@ -7123,8 +7130,8 @@ static bool vehicle_update_motion_collision_detection(
 
 			uint32 offsetSpriteDirection = (vehicle->sprite_direction + 4) & 31;
 			uint32 offsetDirection = offsetSpriteDirection >> 3;
-			uint32 next_x_diff = abs(x + duck_move_offset[offsetDirection].x - collideVehicle->x);
-			uint32 next_y_diff = abs(y + duck_move_offset[offsetDirection].y - collideVehicle->y);
+			uint32 next_x_diff = abs(x + AvoidCollisionMoveOffset[offsetDirection].x - collideVehicle->x);
+			uint32 next_y_diff = abs(y + AvoidCollisionMoveOffset[offsetDirection].y - collideVehicle->y);
 
 			if (next_x_diff + next_y_diff < x_diff + y_diff){
 				mayCollide = true;
