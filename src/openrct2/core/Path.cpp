@@ -121,22 +121,23 @@ namespace Path
     {
         path = GetFileName(path);
 
-        const utf8 * lastDot = nullptr;
+        const utf8 * firstDot = nullptr;
         const utf8 * ch = path;
         for (; *ch != '\0'; ch++)
         {
             if (*ch == '.')
             {
-                lastDot = ch;
+                firstDot = ch;
+                break;
             }
         }
 
-        if (lastDot == nullptr)
+        if (firstDot == nullptr)
         {
             return String::Set(buffer, bufferSize, path);
         }
 
-        size_t truncatedLength = Math::Min<size_t>(bufferSize - 1, lastDot - path);
+        size_t truncatedLength = Math::Min<size_t>(bufferSize - 1, firstDot - path);
         Memory::Copy(buffer, path, truncatedLength);
         buffer[truncatedLength] = '\0';
         return buffer;
