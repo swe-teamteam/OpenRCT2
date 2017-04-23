@@ -65,6 +65,7 @@ typedef struct GeneralConfiguration
     bool        trap_cursor;
     bool        invert_viewport_drag;
     bool        zoom_to_cursor;
+    bool        quick_tooltips;
 
     // Miscellaneous
     bool        play_intro;

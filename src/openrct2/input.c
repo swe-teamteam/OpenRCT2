@@ -1365,7 +1365,8 @@ static void input_update_tooltip(rct_window *w, sint32 widgetIndex, sint32 x, si
 	if (gTooltipWidget.window_classification == 255) {
 		if (gTooltipCursorX == x && gTooltipCursorY == y) {
 			_tooltipNotShownTicks++;
-			if (_tooltipNotShownTicks > 50) {
+			int toolTipTicks = (gConfigGeneral.quick_tooltips) ? 1 : 50;
+			if (_tooltipNotShownTicks > toolTipTicks) {
 				gTooltipTimeout = 0;
 				window_tooltip_open(w, widgetIndex, x, y);
 			}
