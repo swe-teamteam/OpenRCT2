@@ -34,6 +34,18 @@ extern "C"
 
 rct_banner gBanners[MAX_BANNERS];
 
+static uint8 BannerGetNewIndex() {
+    uint8 bannerIndex = 0;
+    for (; bannerIndex < MAX_BANNERS; bannerIndex++)
+    {
+        if (gBanners[bannerIndex].type == BANNER_NULL)
+        {
+            return bannerIndex;
+        }
+    }
+    return BANNER_NULL;
+}
+
 /**
  *
  *  rct2: 0x006B7EAB
@@ -87,6 +99,8 @@ static money32 BannerRemove(sint16 x, sint16 y, uint8 baseHeight, uint8 directio
     // Slight modification to the code so that it now checks height as well
     // This was causing a bug with banners on two paths stacked.
     rct_map_element* mapElement = map_get_banner_element_at(x / 32, y / 32, baseHeight, direction);
+    mapElement->properties.banner.index = BannerGetNewIndex();
+
     if (mapElement == nullptr)
     {
         return MONEY32_UNDEFINED;
@@ -411,18 +425,6 @@ static money32 BannerSetStyle(uint8 bannerIndex, uint8 colour, uint8 textColour,
     }
 
     return 0;
-}
-
-static uint8 BannerGetNewIndex() {
-    uint8 bannerIndex = 0;
-    for (; bannerIndex < MAX_BANNERS; bannerIndex++)
-    {
-        if (gBanners[bannerIndex].type == BANNER_NULL)
-        {
-            return bannerIndex;
-        }
-    }
-    return BANNER_NULL;
 }
 
 extern "C" 
